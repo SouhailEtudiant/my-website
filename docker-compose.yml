@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  # Service de développement
+  development:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    working_dir: /home/node/app
+    ports:
+      - "3000:3000"
+    volumes:
+      - /home/node/app
+
+  # Service de construction
+  builder:
+    image: node:lts
+    build:
+      context: .
+      dockerfile: dockerfile.build
+    working_dir: /app
+    command: sh -c "npm install && npm run build"
+    volumes:
+      - /app
+
+  # Service de déploiement
+  app:
+    image: nginx:stable-alpine
+    build:
+      context: .
+      dockerfile: dockerfile.build
+    ports:
+      - "80:80"
+    depends_on:
+      - builder
+    volumes:
+      - /app
